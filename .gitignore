@@ -1,0 +1,7 @@
+packages/node/
+packages/*.zip
+*.zip
+.DS_Store
+node_modules/
+npm-debug.log*
+cobabaai-image.env

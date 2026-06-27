@@ -1,0 +1,32 @@
+{
+  "name": "cobabaai-image",
+  "version": "0.1.1",
+  "description": "在 Codex 对话中调用 CobabaAi 生图接口。当用户说「用 CobabaAi / gpt-image-2 / nano-banana 生成图片」时，使用 MCP 工具 generate_image 出图并在聊天中展示。",
+  "author": {
+    "name": "CobabaAi"
+  },
+  "keywords": [
+    "cobabaai",
+    "image",
+    "gpt-image-2",
+    "nano-banana",
+    "draw",
+    "生图"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "CobabaAi 生图",
+    "shortDescription": "在 Codex 中调用 CobabaAi 出图",
+    "longDescription": "通过 CobabaAi 异步生图 API 生成图片。支持 gpt-image-2、nano-banana 等模型，自动轮询任务并在对话中展示图片。",
+    "developerName": "CobabaAi",
+    "category": "Creative",
+    "brandColor": "#1A1A1A",
+    "composerIcon": "./assets/composer-icon.png",
+    "logo": "./assets/logo.png",
+    "websiteURL": "https://cobabaai.com/",
+    "defaultPrompt": [
+      "用 gpt-image-2 生成一张月球上喝咖啡的猫"
+    ]
+  }
+}

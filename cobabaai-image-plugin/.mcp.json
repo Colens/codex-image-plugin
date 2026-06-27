@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "cobabaai-image": {
+      "command": "node",
+      "args": ["server/index.js"],
+      "cwd": ".",
+      "env": {
+        "COBABAAI_BASE_URL": "https://api.cobabaai.com"
+      },
+      "env_vars": ["COBABAAI_API_KEY", "COBABAAI_IMAGE_MODEL"],
+      "tool_timeout_sec": 600
+    }
+  }
+}
