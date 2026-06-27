@@ -41,11 +41,141 @@
 
 ---
 
-## 前置要求
+## 环境配置
 
-- 已安装 **[Codex Desktop](https://openai.com/codex/)**
-- 拥有 **[CobabaAi](https://cobabaai.com/)** 账号，并在控制台创建 API 令牌（`sk-` 开头）
-- **不需要** 单独安装 Node.js（安装脚本会自动处理）
+### 运行环境要求
+
+| 项目 | 要求 |
+|------|------|
+| **操作系统** | Windows 10 及以上，或 macOS（Apple Silicon / Intel） |
+| **Codex** | 已安装 [Codex Desktop](https://openai.com/codex/) |
+| **CobabaAi 账号** | 在 [cobabaai.com](https://cobabaai.com/) 注册，并创建 API 令牌 |
+| **磁盘空间** | 约 200 MB（便携 Node + 插件依赖，安装脚本自动处理） |
+| **Git** | 可选；也可在 GitHub 下载 ZIP 解压使用 |
+
+### 无需单独安装
+
+| 软件 | 说明 |
+|------|------|
+| **Node.js** | ❌ 不需要。安装脚本会从 [nodejs.org](https://nodejs.org/) 自动下载便携版 Node **v20.18.0** |
+| **Python / Java 等** | ❌ 不需要 |
+| **系统环境变量** | ❌ 通常不需要手动设置，令牌写入配置文件即可 |
+
+> GitHub 仓库**不含** `packages/node/`（体积过大）。首次运行安装脚本时会联网下载 Node 和 npm 依赖；下载完成后会复制到本机 `~/.codex/packages/node/`，之后运行插件不再依赖系统 PATH 里的 `node` 命令。
+
+### 网络要求
+
+| 阶段 | 是否需要联网 | 访问地址 |
+|------|--------------|----------|
+| **安装插件** | 需要 | `nodejs.org`（下载 Node）、`registry.npmjs.org`（安装依赖） |
+| **配置令牌** | 不需要 | 本地写入配置文件即可 |
+| **日常出图** | 需要 | `api.cobabaai.com`（CobabaAi 生图 API） |
+
+若安装阶段无法访问 npm 或 nodejs.org，请检查网络/代理，或联系提供方获取离线安装包。
+
+### 安装后本机目录
+
+安装脚本会在用户目录下创建/更新以下路径（**无需手动创建**）：
+
+| 路径 | 作用 |
+|------|------|
+| `~/.codex/cobabaai-image.env` | **API 令牌配置文件**（客户需填写） |
+| `~/.codex/config.toml` | Codex 主配置，安装脚本自动写入 MCP 段 |
+| `~/.codex/packages/node/` | 便携 Node 运行时（安装脚本自动复制） |
+| `~/.codex/marketplaces/cobabaai-local/` | 插件 marketplace 与插件文件 |
+
+Windows 下 `~` 即 `%USERPROFILE%`，例如：
+
+```
+C:\Users\你的用户名\.codex\cobabaai-image.env
+C:\Users\你的用户名\.codex\config.toml
+C:\Users\你的用户名\.codex\packages\node\node.exe
+C:\Users\你的用户名\.codex\marketplaces\cobabaai-local\plugins\cobabaai-image\
+```
+
+macOS / Linux 示例：
+
+```
+~/.codex/cobabaai-image.env
+~/.codex/config.toml
+~/.codex/packages/node/bin/node
+~/.codex/marketplaces/cobabaai-local/plugins/cobabaai-image/
+```
+
+### 配置文件说明
+
+#### 1. API 令牌文件（必配）
+
+路径：`~/.codex/cobabaai-image.env`
+
+这是**唯一需要客户手动填写**的配置。插件启动时自动读取，**不要**把此文件提交到 GitHub。
+
+```env
+# CobabaAi 生图插件配置
+COBABAAI_API_KEY=sk-粘贴你的完整令牌
+# 可选：未指定模型时的默认值
+# COBABAAI_IMAGE_MODEL=gpt-image-2
+# 可选：API 地址，一般无需修改
+# COBABAAI_BASE_URL=https://api.cobabaai.com
+```
+
+配置方式见下方 [获取并配置 API 令牌](#获取并配置-api-令牌)。
+
+#### 2. Codex 配置（自动写入）
+
+路径：`~/.codex/config.toml`
+
+安装脚本会自动追加类似以下内容（**一般无需手改**）：
+
+```toml
+[plugins."cobabaai-image@cobabaai-local".mcp_servers.cobabaai-image]
+enabled = true
+command = "C:\\Users\\你的用户名\\.codex\\packages\\node\\node.exe"
+args = ["server/index.js"]
+default_tools_approval_mode = "prompt"
+tool_timeout_sec = 600
+env_vars = ["COBABAAI_API_KEY", "COBABAAI_IMAGE_MODEL"]
+```
+
+其中 `command` 指向本机便携 Node；`env_vars` 表示从环境/配置文件转发令牌和默认模型。
+
+#### 3. 环境变量读取优先级
+
+| 优先级 | 来源 | 说明 |
+|--------|------|------|
+| 1 | `~/.codex/cobabaai-image.env` | **推荐**，用 `配置密钥.bat` 或 `configure-key.sh` 写入 |
+| 2 | 系统用户环境变量 | 如已设置 `COBABAAI_API_KEY` |
+| 3 | Codex 插件 env 转发 | 由 `config.toml` 的 `env_vars` 声明 |
+
+修改配置后，**重启 Codex 或新开对话** 生效。
+
+### 环境变量一览
+
+| 变量 | 必填 | 默认值 | 说明 |
+|------|------|--------|------|
+| `COBABAAI_API_KEY` | **是** | — | CobabaAi API 令牌，以 `sk-` 开头 |
+| `COBABAAI_IMAGE_MODEL` | 否 | `gpt-image-2` | 对话未指定模型时使用 |
+| `COBABAAI_BASE_URL` | 否 | `https://api.cobabaai.com` | API 基地址，一般无需修改 |
+| `CODEX_HOME` | 否 | `~/.codex` | 自定义 Codex 配置目录时使用 |
+
+### 验证环境是否就绪
+
+```bash
+# 1. 确认插件已注册
+codex plugin list
+# 应看到 cobabaai-image@cobabaai-local  → installed, enabled
+
+# 2. 确认令牌文件存在（Windows PowerShell）
+Test-Path "$env:USERPROFILE\.codex\cobabaai-image.env"
+
+# 2. 确认令牌文件存在（macOS / Linux）
+test -f ~/.codex/cobabaai-image.env && echo OK
+
+# 3. 确认便携 Node 存在（Windows）
+Test-Path "$env:USERPROFILE\.codex\packages\node\node.exe"
+```
+
+全部通过后，重启 Codex → 新开对话 → 在 **@ 插件** 中启用 **CobabaAi 生图** 即可使用。
 
 ---
 
@@ -241,21 +371,12 @@ Codex 会读取仓库中的 [`AGENTS.md`](AGENTS.md) 并自动执行 clone、安
 
 ---
 
-## 环境变量（可选）
-
-| 变量 | 必填 | 说明 |
-|------|------|------|
-| `COBABAAI_API_KEY` | **是** | CobabaAi API 令牌，写入 `cobabaai-image.env` |
-| `COBABAAI_BASE_URL` | 否 | API 地址，默认 `https://api.cobabaai.com` |
-| `COBABAAI_IMAGE_MODEL` | 否 | 默认模型，默认 `gpt-image-2` |
-
----
-
 ## 故障排查
 
 | 问题 | 解决方法 |
 |------|----------|
-| **未配置令牌 / 401 错误** | 运行 `配置密钥.bat` 或 `./configure-key.sh`，确认 `sk-` 令牌完整无误 |
+| **未配置令牌 / 401 错误** | 确认 `~/.codex/cobabaai-image.env` 存在且 `COBABAAI_API_KEY=sk-...` 正确 |
+| **安装时 npm / Node 下载失败** | 检查能否访问 nodejs.org 和 registry.npmjs.org；必要时配置代理后重跑安装脚本 |
 | **@ 插件里看不到 CobabaAi 生图** | 重新运行安装脚本，重启 Codex 并新开对话 |
 | **插件列表为空** | 手动执行：`codex plugin marketplace add ~/.codex/marketplaces/cobabaai-local --enable plugins`，再 `codex plugin add cobabaai-image@cobabaai-local --enable plugins` |
 | **macOS 找不到 codex 命令** | `export CODEX_BIN="/Applications/Codex.app/Contents/Resources/codex"` 后重试 |
