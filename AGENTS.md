@@ -61,4 +61,4 @@ codex plugin list
 
 - 插件列表看不到：重新运行 install 脚本，重启 Codex
 - 未配置密钥：运行 configure-key 脚本
-- 详细说明见 `DISTRIBUTION.md` 和 `README.md`
+- 详细说明见 `README.md`

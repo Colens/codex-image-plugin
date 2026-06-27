@@ -83,7 +83,7 @@ function Resolve-NodeForInstall {
     }
 
     if ($Mode -eq 'BundledOnly') {
-        throw 'Bundled node not found. Netdisk release requires packages/node/node.exe.'
+        throw 'Bundled node not found under packages/node/node.exe. Run install script again to auto-download Node.'
     }
 
     $ensureScript = Join-Path $PSScriptRoot 'ensure-node.ps1'

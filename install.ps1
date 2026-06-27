@@ -53,7 +53,7 @@ Write-Ok "Using Node: $($nodeInfo.NodeExe) ($($nodeInfo.Source))"
 
 Write-Step 'Installing MCP dependencies...'
 if (Test-Path (Join-Path $PluginSrc 'node_modules')) {
-    Write-Ok 'node_modules already present (netdisk release), running build only'
+    Write-Ok 'node_modules already present, running build only'
     Push-Location $PluginSrc
     try {
         $npmCli = Get-NpmCli -NodeExe $nodeInfo.NodeExe

@@ -273,7 +273,6 @@ codex-image-plugin/
 ├── install.ps1 / install.sh  # 安装脚本
 ├── configure-key.ps1 / .sh   # 令牌配置脚本
 ├── AGENTS.md                 # 供 Codex 自动代装的说明
-├── DISTRIBUTION.md           # GitHub / 网盘分发策略
 ├── cobabaai-image.env.example
 └── cobabaai-image-plugin/    # 插件主体（MCP Server + Skill）
     ├── .codex-plugin/
@@ -288,7 +287,6 @@ codex-image-plugin/
 - [CobabaAi 官网](https://cobabaai.com/)
 - [CobabaAi API 文档](https://cobabaai.com/docs/zh/guide/api.html)
 - [Codex 官网](https://openai.com/codex/)
-- [分发说明（网盘离线包）](./DISTRIBUTION.md)
 
 ---
 

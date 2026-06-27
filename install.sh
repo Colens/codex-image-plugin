@@ -99,7 +99,7 @@ ok "Using Node: ${node_exe} (${node_source})"
 
 step 'Installing MCP dependencies...'
 if [[ -d "${PLUGIN_SRC}/node_modules" ]]; then
-  ok 'node_modules already present (netdisk release), running build only'
+  ok 'node_modules already present, running build only'
   use_portable_node "${node_exe}"
   (
     cd "${PLUGIN_SRC}"

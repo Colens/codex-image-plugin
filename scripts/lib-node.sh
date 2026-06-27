@@ -83,7 +83,7 @@ resolve_node_for_install() {
   fi
 
   if [[ "${mode}" == "BundledOnly" ]]; then
-    echo "未找到内置 Node。网盘版请确认 packages/node/bin/node 存在。" >&2
+    echo "未找到内置 Node，安装脚本将尝试自动下载。" >&2
     return 1
   fi
 
