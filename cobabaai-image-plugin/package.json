@@ -1,6 +1,6 @@
 {
   "name": "cobabaai-image-plugin",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "private": true,
   "type": "module",
   "description": "CobabaAi 生图 Codex Plugin MCP Server",

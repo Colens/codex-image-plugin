@@ -1,6 +1,6 @@
 {
   "name": "cobabaai-image",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "CobabaAi 生图：单张/批量并行出图，支持 gpt-image-2 与 nano-banana 系列。",
   "author": {
     "name": "CobabaAi",
@@ -28,7 +28,7 @@
   "interface": {
     "displayName": "CobabaAi 生图",
     "shortDescription": "一句话出图，支持批量并行",
-    "longDescription": "在 Codex 对话里用自然语言出图。支持 gpt-image-2、nano-banana-2 等 11 种模型；2～10 张图可一次并行生成。API 密钥在 cobabaai.com 获取。",
+    "longDescription": "在 Codex 对话里用自然语言出图。支持 gpt-image-2、nano-banana-2 等 10 种模型；2～10 张图可一次并行生成。API 密钥在 cobabaai.com 获取。",
     "developerName": "CobabaAi",
     "category": "Creative",
     "brandColor": "#1A1A1A",

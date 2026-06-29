@@ -2,7 +2,6 @@ export const DEFAULT_BASE_URL = "https://api.cobabaai.com";
 
 export const MODEL_OPTIONS = [
   "gpt-image-2",
-  "nano-banana-fast",
   "nano-banana",
   "nano-banana-pro",
   "nano-banana-pro-vt",
@@ -15,7 +14,6 @@ export const MODEL_OPTIONS = [
 ];
 
 const NANO_BANANA_MODELS = new Set([
-  "nano-banana-fast",
   "nano-banana",
   "nano-banana-pro",
   "nano-banana-pro-vt",

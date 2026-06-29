@@ -53,7 +53,7 @@
 
   指定模型 + 分辨率：
     用 gpt-image-2 画一只在月球上喝酒的猫，1280x1280
-    用 nano-banana-fast 生成赛博朋克城市，16:9
+    用 nano-banana 生成赛博朋克城市，16:9
     用 nano-banana-pro-vip 画写实风景，4K
 
   批量并行（2～10 张，一次出图）：
@@ -66,9 +66,9 @@
   同一张 prompt 要 2～4 个变体：
     用 gpt-image-2 画同一只猫，出 4 个不同变体，1280x1280
 
-  可用模型（11 个）：
+  可用模型（10 个）：
     gpt-image-2
-    nano-banana-fast, nano-banana
+    nano-banana
     nano-banana-pro, nano-banana-pro-vt, nano-banana-pro-cl
     nano-banana-pro-vip, nano-banana-pro-4k-vip
     nano-banana-2, nano-banana-2-cl, nano-banana-2-4k-cl

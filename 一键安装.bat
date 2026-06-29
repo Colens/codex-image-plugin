@@ -58,7 +58,7 @@ echo     用 gpt-image-2 画一只在月球上喝酒的猫，1280x1280
 
 echo.
 
-echo  可用模型：gpt-image-2、nano-banana-fast、nano-banana-pro 等
+echo  可用模型：gpt-image-2、nano-banana、nano-banana-pro 等
 
 echo  分辨率示例：1280x1280、1024x1024、1:1、16:9、4K
 

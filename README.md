@@ -14,7 +14,7 @@
 |------|------|
 | **对话式出图** | 用中文或英文描述画面，Codex 自动选模型并生成 |
 | **批量并行** | 2～10 张不同描述 **一次并行** 提交，无需循环调用 |
-| **多模型支持** | `gpt-image-2`、`nano-banana-fast`、`nano-banana-pro` 等 11 种模型 |
+| **多模型支持** | `gpt-image-2`、`nano-banana`、`nano-banana-pro` 等 10 种模型 |
 | **图生图** | 传入参考图 URL，按参考风格生成新图 |
 | **自动轮询** | 异步任务自动等待完成，无需手动查进度 |
 | **聊天内展示** | 图片保存到本地，以 Markdown 形式显示在 Codex 对话中 |
@@ -63,7 +63,6 @@
 | 系列 | 模型 | 适用场景 |
 |------|------|----------|
 | GPT Image | `gpt-image-2` | 默认，通用出图 |
-| Nano Banana | `nano-banana-fast` | 快速、低成本 |
 | Nano Banana | `nano-banana` | 标准质量 |
 | Nano Banana Pro | `nano-banana-pro` / `nano-banana-pro-vip` | 高质量，支持 1K/2K/4K |
 | Nano Banana Pro | `nano-banana-pro-4k-vip` | 4K 高清 |
@@ -277,7 +276,7 @@ env_vars = ["COBABAAI_API_KEY", "COBABAAI_IMAGE_MODEL"]
 ```
 
 ```
-用 nano-banana-fast 画一张赛博朋克风格的猫，16:9
+用 nano-banana 画一张赛博朋克风格的猫，16:9
 ```
 
 ### 批量并行（2～10 张）
@@ -325,7 +324,7 @@ Codex 会读取 [`AGENTS.md`](AGENTS.md) 并自动执行安装。
 | **AI 弹权限读 .env** | 拒绝；重启 → 新对话 → @ CobabaAi 生图 → 直接说「画…」 |
 | **插件列表为空** | `codex plugin marketplace add Colens/codex-image-plugin --enable plugins`，再 `codex plugin add cobabaai-image@cobabaai --enable plugins`，然后重跑 install |
 | **macOS 找不到 codex** | `export CODEX_BIN="/Applications/Codex.app/Contents/Resources/codex"` |
-| **生成超时** | 批量或 pro 系列较慢，超时已设 600 秒；可换 `nano-banana-fast` |
+| **生成超时** | 批量或 pro 系列较慢，超时已设 600 秒；可换 `nano-banana` |
 | **图片不显示** | 工具返回 `![...](C:/Users/.../cobabaai-images/xxx.png)`，模型须原样贴进回复 |
 
 ---
