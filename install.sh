@@ -8,8 +8,10 @@ source "${SCRIPT_DIR}/scripts/lib-node.sh"
 PLUGIN_SRC="${SCRIPT_DIR}/cobabaai-image-plugin"
 REPO_ROOT="${SCRIPT_DIR}"
 CODEX_HOME="${CODEX_HOME:-${HOME}/.codex}"
-MARKETPLACE_ROOT="${CODEX_HOME}/marketplaces/cobabaai-local"
+MARKETPLACE_ROOT="${CODEX_HOME}/marketplaces/cobabaai"
 PLUGIN_DEST="${MARKETPLACE_ROOT}/plugins/cobabaai-image"
+GITHUB_REPO="${COBABAAI_GITHUB_REPO:-Colens/codex-image-plugin}"
+PLUGIN_ID="cobabaai-image@cobabaai"
 CONFIG_PATH="${CODEX_HOME}/config.toml"
 ENV_FILE_PATH="${CODEX_HOME}/cobabaai-image.env"
 
@@ -125,9 +127,9 @@ MARKETPLACE_MANIFEST="${MARKETPLACE_ROOT}/.agents/plugins/marketplace.json"
 mkdir -p "$(dirname "${MARKETPLACE_MANIFEST}")"
 write_utf8_file "${MARKETPLACE_MANIFEST}" <<'JSON'
 {
-  "name": "cobabaai-local",
+  "name": "cobabaai",
   "interface": {
-    "displayName": "CobabaAi Local"
+    "displayName": "CobabaAi 生图"
   },
   "plugins": [
     {
@@ -180,41 +182,53 @@ else
   fi
 fi
 
-step 'Registering plugin with Codex CLI...'
+step 'Registering GitHub + local plugin marketplace...'
 if codex_cli="$(find_codex_cli)"; then
   ok "Codex CLI: ${codex_cli}"
+  gh_status=0
+  gh_add="$("${codex_cli}" plugin marketplace add "${GITHUB_REPO}" --enable plugins 2>&1)" || gh_status=$?
+  if [[ "${gh_status}" -ne 0 ]] && [[ "${gh_add}" != *already\ added* ]]; then
+    warn "GitHub marketplace skipped: ${gh_add}"
+  else
+    ok "GitHub marketplace: ${GITHUB_REPO}"
+  fi
   marketplace_status=0
   marketplace_add="$("${codex_cli}" plugin marketplace add "${MARKETPLACE_ROOT}" --enable plugins 2>&1)" || marketplace_status=$?
   if [[ "${marketplace_status}" -ne 0 ]] && [[ "${marketplace_add}" != *already\ added* ]]; then
     echo "${marketplace_add}" >&2
     exit 1
   fi
-  "${codex_cli}" plugin add cobabaai-image@cobabaai-local --enable plugins
+  "${codex_cli}" plugin add "${PLUGIN_ID}" --enable plugins
   ok 'Plugin registered and installed'
 else
-  warn 'Codex CLI not found. Restart Codex and run: codex plugin add cobabaai-image@cobabaai-local'
+  warn "Codex CLI not found. Run: codex plugin marketplace add ${GITHUB_REPO}"
 fi
 
 step 'Updating Codex config.toml...'
 mkdir -p "${CODEX_HOME}"
-if [[ ! -f "${CONFIG_PATH}" ]] || ! grep -Fq '[plugins."cobabaai-image@cobabaai-local".mcp_servers.cobabaai-image]' "${CONFIG_PATH}"; then
-  {
-    [[ -f "${CONFIG_PATH}" && -s "${CONFIG_PATH}" ]] && printf '\n'
-    cat <<TOML
+plugin_cwd="${PLUGIN_DEST//\\//}"
+mcp_block="$(cat <<TOML
 
-[plugins."cobabaai-image@cobabaai-local".mcp_servers.cobabaai-image]
+[plugins."${PLUGIN_ID}".mcp_servers.cobabaai-image]
 enabled = true
 command = "${runtime_node_exe}"
 args = ["server/index.js"]
-default_tools_approval_mode = "prompt"
+cwd = "${plugin_cwd}"
+default_tools_approval_mode = "auto"
 tool_timeout_sec = 600
 env_vars = ["COBABAAI_API_KEY", "COBABAAI_IMAGE_MODEL"]
 TOML
-  } >> "${CONFIG_PATH}"
-  ok 'MCP settings added to config.toml'
-else
-  ok 'MCP settings already in config.toml, skipped'
+)"
+if grep -Fq '[plugins."cobabaai-image@cobabaai-local".mcp_servers.cobabaai-image]' "${CONFIG_PATH}" 2>/dev/null || grep -Fq '[plugins."cobabaai-image@cobabaai".mcp_servers.cobabaai-image]' "${CONFIG_PATH}" 2>/dev/null; then
+  perl -0777 -i -pe 's/\[plugins\."cobabaai-image@(cobabaai-local|cobabaai)"\.mcp_servers\.cobabaai-image\][\s\S]*?(?=\n\[|\z)//' "${CONFIG_PATH}"
 fi
+if ! grep -Fq '[plugins."cobabaai-image@cobabaai".mcp_servers.cobabaai-image]' "${CONFIG_PATH}" 2>/dev/null; then
+  {
+    [[ -f "${CONFIG_PATH}" && -s "${CONFIG_PATH}" ]] && printf '\n'
+    printf '%s\n' "${mcp_block}"
+  } >> "${CONFIG_PATH}"
+fi
+ok 'MCP settings written to config.toml (with cwd)'
 
 printf '\n  ========================================\n'
 printf '           Installation complete!\n'

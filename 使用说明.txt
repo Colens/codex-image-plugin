@@ -1,0 +1,107 @@
+════════════════════════════════════════
+  CobabaAi 生图 × Codex  使用说明
+  https://github.com/Colens/codex-image-plugin
+════════════════════════════════════════
+
+【许可】专有软件：禁止商用、禁止二次分发。详见 LICENSE。
+
+【准备】
+  1. 已安装 Codex Desktop
+  2. 在 https://cobabaai.com/ 复制 API 密钥（sk- 开头）
+
+
+────────────────────────────────────────
+  安装方式（三选一，推荐方式 1）
+────────────────────────────────────────
+
+  方式 1 — 一键安装（推荐）
+    Windows：双击「一键安装.bat」→「配置密钥.bat」
+    macOS：  双击「一键安装.command」→「配置密钥.command」
+
+  方式 2 — 命令行
+    Windows：
+      git clone https://github.com/Colens/codex-image-plugin.git
+      cd codex-image-plugin
+      powershell -ExecutionPolicy Bypass -File .\install.ps1
+      powershell -ExecutionPolicy Bypass -File .\configure-key.ps1
+
+    macOS：
+      git clone https://github.com/Colens/codex-image-plugin.git
+      cd codex-image-plugin
+      chmod +x install.sh configure-key.sh scripts/*.sh
+      ./install.sh
+      ./configure-key.sh
+
+  方式 3 — Codex 插件市场（GitHub）
+    codex plugin marketplace add Colens/codex-image-plugin --enable plugins
+    codex plugin add cobabaai-image@cobabaai --enable plugins
+    然后仍须 clone 仓库并运行 install 脚本（安装 npm 依赖与 MCP 配置）
+
+  安装后必做：
+    1. 完全退出 Codex，重新打开
+    2. 新建对话 → @ 插件 → 勾选「CobabaAi 生图」
+    3. 验证：codex plugin list
+       应看到 cobabaai-image@cobabaai → installed, enabled
+
+
+────────────────────────────────────────
+  怎么说（直接生图到聊天里）
+────────────────────────────────────────
+
+  单张（最简单）：
+    画一只在月球上喝酒的猫
+
+  指定模型 + 分辨率：
+    用 gpt-image-2 画一只在月球上喝酒的猫，1280x1280
+    用 nano-banana-fast 生成赛博朋克城市，16:9
+    用 nano-banana-pro-vip 画写实风景，4K
+
+  批量并行（2～10 张，一次出图）：
+    用 nano-banana-2 并行生成 5 张不同家具白底产品图，1280x1280
+    用 gpt-image-2 同时画 3 种不同风格的 logo，1024x1024
+
+    说明：AI 会调用 generate_images_batch，一次提交全部任务，
+    不会循环调用 10 次。每张图独立 prompt，可同时生成。
+
+  同一张 prompt 要 2～4 个变体：
+    用 gpt-image-2 画同一只猫，出 4 个不同变体，1280x1280
+
+  可用模型（11 个）：
+    gpt-image-2
+    nano-banana-fast, nano-banana
+    nano-banana-pro, nano-banana-pro-vt, nano-banana-pro-cl
+    nano-banana-pro-vip, nano-banana-pro-4k-vip
+    nano-banana-2, nano-banana-2-cl, nano-banana-2-4k-cl
+
+  分辨率示例：
+    1280x1280、1024x1024、1:1、16:9、9:16、auto
+    nano-banana-pro 系列还支持 1K、2K、4K
+
+
+────────────────────────────────────────
+  图片保存位置
+────────────────────────────────────────
+
+  生成后保存在本地，聊天里显示为 Markdown 图片：
+  Windows  C:\Users\你的用户名\.codex\cobabaai-images\
+  macOS    ~/.codex/cobabaai-images/
+
+
+────────────────────────────────────────
+  出图异常
+────────────────────────────────────────
+
+  双击「自检.bat」（macOS：自检.command）
+  全部 [OK] 后完全重启 Codex，新开对话再试
+  AI 要读密钥文件 → 点拒绝，重启 Codex 新开对话
+
+
+────────────────────────────────────────
+  密钥位置（本地，不会上传）
+────────────────────────────────────────
+
+  Windows  C:\Users\你的用户名\.codex\cobabaai-image.env
+  macOS    ~/.codex/cobabaai-image.env
+  改密钥：双击「配置密钥.bat」或运行 configure-key 脚本
+
+════════════════════════════════════════

@@ -75,5 +75,33 @@ COBABAAI_API_KEY=${input_key}
 # COBABAAI_IMAGE_MODEL=gpt-image-2
 EOF
 
+# macOS/Linux: 写入当前 shell 配置文件，供 Codex env_vars 转发
+profile_candidates=(
+  "${HOME}/.zprofile"
+  "${HOME}/.bash_profile"
+  "${HOME}/.profile"
+)
+profile_updated=0
+for profile in "${profile_candidates[@]}"; do
+  if [[ -f "${profile}" ]]; then
+    if grep -q '^export COBABAAI_API_KEY=' "${profile}" 2>/dev/null; then
+      if [[ "$(uname -s)" == "Darwin" ]]; then
+        sed -i '' "s|^export COBABAAI_API_KEY=.*|export COBABAAI_API_KEY=${input_key}|" "${profile}"
+      else
+        sed -i "s|^export COBABAAI_API_KEY=.*|export COBABAAI_API_KEY=${input_key}|" "${profile}"
+      fi
+    else
+      printf '\n# CobabaAi 生图插件\nexport COBABAAI_API_KEY=%s\n' "${input_key}" >> "${profile}"
+    fi
+    profile_updated=1
+    printf '  已同步到: %s\n' "${profile}"
+    break
+  fi
+done
+if [[ "${profile_updated}" -eq 0 ]]; then
+  printf '  提示: 可将 export COBABAAI_API_KEY=... 加入 ~/.zprofile 后重启 Codex\n'
+fi
+export COBABAAI_API_KEY="${input_key}"
+
 printf '\n  已保存到: %s\n' "${ENV_FILE_PATH}"
 printf '  请重启 Codex 或新开对话后生效。\n\n'

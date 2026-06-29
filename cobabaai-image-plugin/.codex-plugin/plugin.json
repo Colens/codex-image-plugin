@@ -1,24 +1,34 @@
 {
   "name": "cobabaai-image",
-  "version": "0.1.1",
-  "description": "在 Codex 对话中调用 CobabaAi 生图接口。当用户说「用 CobabaAi / gpt-image-2 / nano-banana 生成图片」时，使用 MCP 工具 generate_image 出图并在聊天中展示。",
+  "version": "0.2.6",
+  "description": "CobabaAi 生图：单张/批量并行出图，支持 gpt-image-2 与 nano-banana 系列。",
   "author": {
-    "name": "CobabaAi"
+    "name": "CobabaAi",
+    "url": "https://cobabaai.com/"
   },
+  "license": "LicenseRef-CobabaAi-Proprietary",
+  "homepage": "https://github.com/Colens/codex-image-plugin",
+  "repository": "https://github.com/Colens/codex-image-plugin",
   "keywords": [
     "cobabaai",
+    "cobabaai生图",
     "image",
     "gpt-image-2",
     "nano-banana",
+    "nano-banana-2",
     "draw",
-    "生图"
+    "生图",
+    "出图",
+    "画图",
+    "codex",
+    "batch"
   ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "CobabaAi 生图",
-    "shortDescription": "在 Codex 中调用 CobabaAi 出图",
-    "longDescription": "通过 CobabaAi 异步生图 API 生成图片。支持 gpt-image-2、nano-banana 等模型，自动轮询任务并在对话中展示图片。",
+    "shortDescription": "一句话出图，支持批量并行",
+    "longDescription": "在 Codex 对话里用自然语言出图。支持 gpt-image-2、nano-banana-2 等 11 种模型；2～10 张图可一次并行生成。API 密钥在 cobabaai.com 获取。",
     "developerName": "CobabaAi",
     "category": "Creative",
     "brandColor": "#1A1A1A",
@@ -26,7 +36,7 @@
     "logo": "./assets/logo.png",
     "websiteURL": "https://cobabaai.com/",
     "defaultPrompt": [
-      "用 gpt-image-2 生成一张月球上喝咖啡的猫"
+      "用 gpt-image-2 画一只在月球上喝酒的猫，1280x1280"
     ]
   }
 }

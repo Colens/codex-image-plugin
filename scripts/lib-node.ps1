@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 
 function Get-RepoRoot {
     param([string]$StartDir = (Split-Path -Parent $PSScriptRoot))
@@ -52,7 +52,7 @@ function Install-NodeToCodexHome {
     param([string]$SourceRoot)
     $sourceNode = Get-BundledNodeExe -Root $SourceRoot
     if (-not $sourceNode) {
-        throw "Bundled node not found under $SourceRoot/packages/node"
+        throw "未找到内置 Node: $SourceRoot/packages/node"
     }
 
     $destRoot = Join-Path (Get-CodexHomePath) 'packages\node'
@@ -83,18 +83,18 @@ function Resolve-NodeForInstall {
     }
 
     if ($Mode -eq 'BundledOnly') {
-        throw 'Bundled node not found under packages/node/node.exe. Run install script again to auto-download Node.'
+        throw '未找到内置 Node（packages/node/node.exe），请重新运行安装脚本以自动下载。'
     }
 
     $ensureScript = Join-Path $PSScriptRoot 'ensure-node.ps1'
     if (-not (Test-Path $ensureScript)) {
-        throw 'ensure-node.ps1 not found; cannot download Node automatically.'
+        throw '未找到 ensure-node.ps1，无法自动下载 Node。'
     }
 
     & $ensureScript -RepoRoot $RepoRoot | Out-Host
     $bundled = Get-BundledNodeExe -Root $RepoRoot
     if (-not $bundled) {
-        throw 'Failed to download Node.js automatically.'
+        throw '自动下载 Node.js 失败。'
     }
 
     return @{
@@ -115,9 +115,9 @@ function Invoke-PluginNpmInstall {
     Push-Location $PluginDir
     try {
         & $npmCli install '--omit=dev'
-        if ($LASTEXITCODE -ne 0) { throw ('npm install failed (exit ' + $LASTEXITCODE + ')') }
+        if ($LASTEXITCODE -ne 0) { throw ('npm install 失败（退出码 ' + $LASTEXITCODE + '）') }
         & $npmCli run build
-        if ($LASTEXITCODE -ne 0) { throw ('npm run build failed (exit ' + $LASTEXITCODE + ')') }
+        if ($LASTEXITCODE -ne 0) { throw ('npm run build 失败（退出码 ' + $LASTEXITCODE + '）') }
     } finally {
         Pop-Location
     }

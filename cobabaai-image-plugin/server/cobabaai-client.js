@@ -70,13 +70,65 @@ async function postJson(url, body) {
 }
 
 function extractImageUrl(data) {
-  if (data?.results?.length > 0 && data.results[0]?.url) {
-    return data.results[0].url;
+  const urls = extractAllImageUrls(data);
+  return urls[0] ?? "";
+}
+
+export function extractAllImageUrls(data) {
+  if (data?.results?.length > 0) {
+    return data.results.map((item) => item?.url).filter(Boolean);
   }
   if (typeof data?.url === "string" && data.url) {
-    return data.url;
+    return [data.url];
   }
-  return "";
+  return [];
+}
+
+function mimeFromUrl(url) {
+  const lower = url.split("?")[0].toLowerCase();
+  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+  if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".gif")) return "image/gif";
+  return "image/png";
+}
+
+/** 下载 CDN 图片为 MCP 可内嵌的 base64（Codex 无法直接加载外链 Markdown 图） */
+export async function fetchImageContent(imageUrl, { retries = 6, delayMs = 2000 } = {}) {
+  let lastError;
+  for (let attempt = 0; attempt < retries; attempt += 1) {
+    if (attempt > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
+    }
+    try {
+      const res = await fetch(imageUrl, {
+        headers: { "User-Agent": "cobabaai-image-plugin/0.2.2" },
+        signal: AbortSignal.timeout(120_000),
+      });
+      if (!res.ok) {
+        throw new Error(`下载图片失败 (${res.status})`);
+      }
+      const mimeType =
+        res.headers.get("content-type")?.split(";")[0]?.trim() ||
+        mimeFromUrl(imageUrl);
+      const buffer = Buffer.from(await res.arrayBuffer());
+      if (buffer.length === 0) {
+        throw new Error("下载的图片为空");
+      }
+      return {
+        mimeType,
+        data: buffer.toString("base64"),
+        bytes: buffer.length,
+        buffer,
+      };
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `[cobabaai-image] fetch attempt ${attempt + 1}/${retries} failed:`,
+        error.message,
+      );
+    }
+  }
+  throw lastError ?? new Error("下载图片失败");
 }
 
 export async function pollImageTask(taskId) {
@@ -97,15 +149,16 @@ export async function pollImageTask(taskId) {
     }
 
     if (data.status === "succeeded") {
-      const imageUrl = extractImageUrl(data);
-      if (!imageUrl) {
+      const imageUrls = extractAllImageUrls(data);
+      if (imageUrls.length === 0) {
         throw new Error("任务成功但未返回图片 URL");
       }
       return {
         taskId,
         status: data.status,
         progress: data.progress ?? 100,
-        imageUrl,
+        imageUrl: imageUrls[0],
+        imageUrls,
       };
     }
 
@@ -123,6 +176,7 @@ export async function generateImage({
   prompt,
   model,
   aspectRatio,
+  resolution,
   variants,
   referenceUrls,
   imageSize,
@@ -134,6 +188,7 @@ export async function generateImage({
     prompt,
     model: normalizedModel,
     aspectRatio,
+    resolution,
     variants,
     referenceUrls,
     imageSize,
@@ -150,8 +205,44 @@ export async function generateImage({
     ...result,
     model: normalizedModel,
     prompt,
-    aspectRatio: aspectRatio || "auto",
+    aspectRatio: body.aspectRatio,
+    resolution: resolution || aspectRatio || body.aspectRatio,
+    imageUrls: result.imageUrls ?? [result.imageUrl],
   };
+}
+
+/** 多 prompt 并行生图（最多 10 张） */
+export async function generateImagesBatch({
+  prompts,
+  model,
+  aspectRatio,
+  resolution,
+}) {
+  const list = prompts.map((p) => String(p).trim()).filter(Boolean).slice(0, 10);
+  if (list.length === 0) {
+    throw new Error("prompts 不能为空");
+  }
+
+  return Promise.all(
+    list.map(async (prompt, index) => {
+      try {
+        const result = await generateImage({
+          prompt,
+          model,
+          aspectRatio,
+          resolution,
+        });
+        return { index, ok: true, prompt, ...result };
+      } catch (error) {
+        return {
+          index,
+          ok: false,
+          prompt,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }),
+  );
 }
 
 export function listSupportedModels() {

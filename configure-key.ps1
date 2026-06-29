@@ -1,5 +1,7 @@
-$ErrorActionPreference = 'Stop'
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+﻿$ErrorActionPreference = 'Stop'
+
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+. (Join-Path $ScriptDir 'scripts\init-console.ps1')
 
 $CodexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
 $EnvFilePath = Join-Path $CodexHome 'cobabaai-image.env'
@@ -62,7 +64,11 @@ COBABAAI_API_KEY=$inputKey
 "@
 
 Write-Utf8NoBom $EnvFilePath $envContent
+[Environment]::SetEnvironmentVariable('COBABAAI_API_KEY', $inputKey, 'User')
+$env:COBABAAI_API_KEY = $inputKey
 Write-Host ''
 Write-Host "  已保存到: $EnvFilePath" -ForegroundColor Green
+Write-Host '  已同步到 Windows 用户环境变量 COBABAAI_API_KEY' -ForegroundColor Green
 Write-Host '  请重启 Codex 或新开对话后生效。' -ForegroundColor Gray
 Write-Host ''
+exit 0

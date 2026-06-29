@@ -2,7 +2,6 @@ export const DEFAULT_BASE_URL = "https://api.cobabaai.com";
 
 export const MODEL_OPTIONS = [
   "gpt-image-2",
-  "gpt-image-2-vip",
   "nano-banana-fast",
   "nano-banana",
   "nano-banana-pro",
@@ -59,23 +58,29 @@ export function buildRequestBody({
   prompt,
   model,
   aspectRatio = "auto",
+  resolution,
   variants = 1,
   referenceUrls = [],
   imageSize,
   webHook = "-1",
 }) {
   const normalizedModel = normalizeModel(model);
+  const size = resolveSize({
+    resolution,
+    aspectRatio,
+    model: normalizedModel,
+  });
   const body = {
     prompt,
     variants,
     model: normalizedModel,
     urls: referenceUrls,
     webHook,
-    aspectRatio,
+    aspectRatio: size.aspectRatio,
   };
 
   if (supportsImageSize(normalizedModel)) {
-    body.imageSize = imageSize || defaultImageSize(normalizedModel);
+    body.imageSize = imageSize || size.imageSize || defaultImageSize(normalizedModel);
   }
 
   return body;
@@ -87,3 +92,38 @@ function defaultImageSize(model) {
   }
   return "1K";
 }
+
+/** 把用户说的「分辨率」统一成 API 的 aspectRatio / imageSize */
+export function resolveSize({ resolution, aspectRatio, model }) {
+  const raw = (resolution || aspectRatio || "auto").trim();
+  const upper = raw.toUpperCase();
+
+  if (["1K", "2K", "4K"].includes(upper) && supportsImageSize(model)) {
+    return { aspectRatio: aspectRatio?.trim() || "auto", imageSize: upper };
+  }
+
+  const sizeMatch = raw.match(/^(\d+)\s*[x×*]\s*(\d+)$/i);
+  if (sizeMatch) {
+    const w = Number(sizeMatch[1]);
+    const h = Number(sizeMatch[2]);
+    return { aspectRatio: raw, imageSize: inferImageSizeFromPixels(w, h, model) };
+  }
+
+  return {
+    aspectRatio: raw,
+    imageSize: inferImageSizeFromPixels(0, 0, model),
+  };
+}
+
+function inferImageSizeFromPixels(w, h, model) {
+  if (!supportsImageSize(model)) {
+    return undefined;
+  }
+  const max = Math.max(w, h);
+  if (max >= 3000) return "4K";
+  if (max >= 1500) return "2K";
+  if (max > 0) return "1K";
+  return defaultImageSize(normalizeModel(model));
+}
+
+export const MODELS_HELP = MODEL_OPTIONS.join(", ");
