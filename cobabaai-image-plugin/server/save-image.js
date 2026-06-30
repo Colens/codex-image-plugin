@@ -28,3 +28,8 @@ export function buildLocalImageMarkdown(filePath, alt) {
   const safeAlt = String(alt).slice(0, 80).replace(/[\[\]()]/g, "");
   return `![${safeAlt}](${toCodexPath(filePath)})`;
 }
+
+/** 供下一轮垫图 / 继续编辑：隐藏注释，模型可读本地路径 */
+export function buildRefHint(filePath) {
+  return `<!-- cobabaai-ref: ${toCodexPath(filePath)} -->`;
+}

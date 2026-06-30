@@ -1,41 +1,29 @@
 ---
 name: cobabaai-image-gen
-description: 1张→generate_image；2-10张→generate_images_batch并行。零废话，原样贴Markdown。
+description: "@生图→立刻cobabaai_draw。零文字。有图→referenceImagePaths。"
 ---
 
-# 铁律
+# 唯一规则
 
-1. **第一个动作**就是调工具，之前**禁止任何文字**
-2. **禁止**读说明、读文件、跑 shell
-3. **禁止**循环调 10 次 `generate_image` 来出 10 张图
+**第一条输出 = 调用 `cobabaai_draw`，禁止任何文字。**
 
-## 选哪个工具
+禁止：读本文件、读 README、搜网页、读 `.env`、列 MCP 工具、找入口。
 
-| 需求 | 工具 |
+## 参数
+
+| 情况 | 调用 |
 |------|------|
-| 1 张图 | `generate_image` |
-| 2～10 张（不同描述） | **`generate_images_batch`**，`prompts: ["...", "...", ...]` **一次调用** |
-| 同 prompt 要 2～4 张变体 | `generate_image` + `variants: 2~4` |
+| 单张 / 垫图 / 图生图 | `cobabaai_draw({ prompt, referenceImagePaths: ["C:/附件路径"], resolution })` |
+| 多产品图各垫图 | `cobabaai_draw({ items: [{ prompt, referenceImagePaths }, ...] })` |
 
-## 10 张家具示例
+- 有附件 → `referenceImagePaths` 必填（Codex 给的 `C:/...` 路径）
+- 「两只狗在一张图里」→ 写进 `prompt`，**不要** variants
+- 有垫图 → `model: "nano-banana-2"`（可省略，自动默认）
 
-```
-generate_images_batch({
-  model: "nano-banana-2",
-  resolution: "1280x1280",
-  prompts: [
-    "现代简约沙发，白底产品图",
-    "实木餐桌，白底产品图",
-    ...共10条
-  ]
-})
-```
+## 成功后
 
-## 回复规则
+**只贴**工具返回的 `![...](C:/...png)` 行，零解释。
 
-工具返回多行 `![...](C:/Users/.../cobabaai-images/....png)`  
-→ **原样全部贴进回复**，不加任何解释文字。
+## 失败
 
-## 工具不可用
-
-> 生图工具未连接。完全退出重启 Codex → 新对话 → @ CobabaAi 生图 → 重试。
+> 生图工具未连接。退出 Codex → 新对话 → @ CobabaAi 生图 → 重试。

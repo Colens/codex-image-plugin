@@ -106,6 +106,15 @@ if [[ -n "${runtime_node}" && -f "${SCRIPT_DIR}/scripts/test-mcp-load.js" ]]; th
   fi
 fi
 
+if [[ -n "${runtime_node}" && -f "${PLUGIN_DIR}/scripts/test-mcp-tools-list.js" ]]; then
+  tools_line="$("${runtime_node}" "${PLUGIN_DIR}/scripts/test-mcp-tools-list.js" 2>/dev/null | grep '^tools:' | head -n1 || true)"
+  if [[ "${tools_line}" == "tools:cobabaai_draw" ]]; then
+    check 1 "MCP 工具已暴露: ${tools_line}" || all_ok=0
+  else
+    check 0 "MCP 工具未暴露: ${tools_line:-无输出}" || all_ok=0
+  fi
+fi
+
 printf '\n'
 if [[ "${all_ok}" -eq 1 ]]; then
   printf '  \033[32m全部通过。请重启 Codex → 新对话 → @ CobabaAi 生图 → 说「画一只在月球上喝酒的猫」\033[0m\n\n'

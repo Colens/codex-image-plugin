@@ -1,12 +1,12 @@
 {
   "name": "cobabaai-image-plugin",
-  "version": "0.2.7",
+  "version": "0.3.3",
   "private": true,
   "type": "module",
   "description": "CobabaAi 生图 Codex Plugin MCP Server",
   "scripts": {
     "start": "node server/index.js",
-    "build": "node --check server/index.js && node --check server/batch-images.js"
+    "build": "node --check server/index.js && node --check server/draw-handler.js && node --check server/batch-images.js && node --check server/batch-normalize.js && node --check server/resolve-reference-images.js && node --check server/result-format.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",

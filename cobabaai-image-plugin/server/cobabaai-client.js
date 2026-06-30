@@ -3,10 +3,13 @@ import {
   buildRequestBody,
   getEndpoint,
   normalizeModel,
+  pickModelWithReferences,
   supportsImageSize,
   MODEL_OPTIONS,
 } from "./model-config.js";
 import { loadLocalConfig, localConfigPath } from "./load-local-config.js";
+import { resolveReferenceImages } from "./resolve-reference-images.js";
+import { normalizeBatchInput, resolveBatchItemReferences } from "./batch-normalize.js";
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_ATTEMPTS = 120;
@@ -179,9 +182,20 @@ export async function generateImage({
   resolution,
   variants,
   referenceUrls,
+  referenceImagePaths,
+  referenceImages: preResolvedImages,
   imageSize,
 }) {
-  const normalizedModel = normalizeModel(model || process.env.COBABAAI_IMAGE_MODEL);
+  const referenceImages =
+    preResolvedImages ??
+    resolveReferenceImages({
+      referenceImagePaths,
+      referenceUrls,
+    });
+  const normalizedModel = pickModelWithReferences(
+    model || process.env.COBABAAI_IMAGE_MODEL,
+    referenceImages.length > 0,
+  );
   const baseUrl = getBaseUrl();
   const endpoint = getEndpoint(baseUrl, normalizedModel);
   const body = buildRequestBody({
@@ -190,7 +204,7 @@ export async function generateImage({
     aspectRatio,
     resolution,
     variants,
-    referenceUrls,
+    referenceImages,
     imageSize,
   });
 
@@ -211,26 +225,53 @@ export async function generateImage({
   };
 }
 
-/** 多 prompt 并行生图（最多 10 张） */
+/** 多 prompt 并行生图；items 模式每条可独立垫图，prompts 模式共用垫图 */
 export async function generateImagesBatch({
+  items,
   prompts,
   model,
   aspectRatio,
   resolution,
+  referenceUrls,
+  referenceImagePaths,
 }) {
-  const list = prompts.map((p) => String(p).trim()).filter(Boolean).slice(0, 10);
-  if (list.length === 0) {
-    throw new Error("prompts 不能为空");
-  }
+  const entries = normalizeBatchInput({
+    items,
+    prompts,
+    referenceImagePaths,
+    referenceUrls,
+  });
+
+  const sharedReferenceImages = resolveReferenceImages({
+    referenceImagePaths,
+    referenceUrls,
+  });
 
   return Promise.all(
-    list.map(async (prompt, index) => {
+    entries.map(async (entry) => {
+      const { index } = entry;
+      const prompt = entry.prompt;
+      if (!prompt) {
+        return {
+          index,
+          ok: false,
+          prompt: "",
+          error: `第 ${index + 1} 条 prompt 为空`,
+        };
+      }
+
       try {
+        const referenceImages = resolveBatchItemReferences(
+          entry,
+          sharedReferenceImages,
+        );
         const result = await generateImage({
           prompt,
           model,
           aspectRatio,
           resolution,
+          referenceImages:
+            referenceImages.length > 0 ? referenceImages : undefined,
         });
         return { index, ok: true, prompt, ...result };
       } catch (error) {

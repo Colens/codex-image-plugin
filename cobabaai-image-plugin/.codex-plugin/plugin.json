@@ -1,7 +1,7 @@
 {
   "name": "cobabaai-image",
-  "version": "0.2.7",
-  "description": "CobabaAi 生图：单张/批量并行出图，支持 gpt-image-2 与 nano-banana 系列。",
+  "version": "0.3.3",
+  "description": "零废话：唯一工具 cobabaai_draw，@ 即出图。",
   "author": {
     "name": "CobabaAi",
     "url": "https://cobabaai.com/"
@@ -27,8 +27,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "CobabaAi 生图",
-    "shortDescription": "一句话出图，支持批量并行",
-    "longDescription": "在 Codex 对话里用自然语言出图。支持 gpt-image-2、nano-banana-2 等 10 种模型；2～10 张图可一次并行生成。API 密钥在 cobabaai.com 获取。",
+    "shortDescription": "@ 即出图，零废话",
+    "longDescription": "唯一工具 cobabaai_draw：上传参考图+描述→立刻出图。禁止先解释。垫图默认 nano-banana-2。",
     "developerName": "CobabaAi",
     "category": "Creative",
     "brandColor": "#1A1A1A",
@@ -36,7 +36,7 @@
     "logo": "./assets/logo.png",
     "websiteURL": "https://cobabaai.com/",
     "defaultPrompt": [
-      "用 gpt-image-2 画一只在月球上喝酒的猫，1280x1280"
+      "两个边牧犬分别坐在沙发左右两边，1280x1280"
     ]
   }
 }

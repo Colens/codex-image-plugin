@@ -89,6 +89,7 @@ if ($key) {
 }
 
 $testScript = Join-Path $ScriptDir 'scripts\test-mcp-load.js'
+$toolsScript = Join-Path $PluginDir 'scripts\test-mcp-tools-list.js'
 if ($NodeExe -and (Test-Path $testScript)) {
     try {
         $loadResult = & $NodeExe $testScript 2>&1
@@ -100,10 +101,37 @@ if ($NodeExe -and (Test-Path $testScript)) {
     }
 }
 
+if ($NodeExe -and (Test-Path $toolsScript)) {
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        Push-Location $PluginDir
+        $toolsResult = & $NodeExe $toolsScript 2>&1
+        Pop-Location
+        $toolsLine = @($toolsResult | Where-Object { $_ -match '^tools:' } | Select-Object -First 1)
+        if (-not $toolsLine) {
+            $toolsLine = ($toolsResult -join ' ').Trim()
+        } else {
+            $toolsLine = [string]$toolsLine
+        }
+        $toolsOk = $toolsLine -eq 'tools:cobabaai_draw'
+        $allOk = (Write-Check $toolsOk ('MCP tools exposed: ' + $toolsLine)) -and $allOk
+        if (-not $toolsOk) {
+            Write-Host '  [!!] If Codex says tool not exposed, rerun install.ps1 and restart Codex' -ForegroundColor Yellow
+        }
+    } catch {
+        Pop-Location -ErrorAction SilentlyContinue
+        $allOk = (Write-Check $false ('MCP tools list failed: ' + $_.Exception.Message)) -and $allOk
+    } finally {
+        $ErrorActionPreference = $prevEap
+    }
+}
+
 Write-Host ''
 if ($allOk) {
     Write-Host '  All checks passed.' -ForegroundColor Green
-    Write-Host '  Restart Codex -> new chat -> @ CobabaAi -> say: draw a cat drinking on the moon' -ForegroundColor Green
+    Write-Host '  Restart Codex -> NEW chat -> @ CobabaAi -> upload image -> say your prompt' -ForegroundColor Green
+    Write-Host '  Normal: 1 tool call, no reading .env, no exploring tools' -ForegroundColor Green
 } else {
     Write-Host '  Issues found. Run install.ps1, configure key, then fully restart Codex.' -ForegroundColor Yellow
 }

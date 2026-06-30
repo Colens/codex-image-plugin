@@ -71,15 +71,41 @@ codex plugin list
 用 gpt-image-2 画一只在月球上喝咖啡的猫，1280x1280
 ```
 
-**批量（2～10 张，一次并行）：**
+**垫图 / 继续编辑：**
+
+```
+[上传沙发图片] 用 nano-banana-2 生成美女坐在同款沙发上，1280x1280
+```
+
+```
+把背景改成夜景，人物不变
+```
+
+有参考图时默认 `nano-banana-2`；工具返回 `<!-- cobabaai-ref: 路径 -->` 供下轮垫图。
+
+**十张产品图各配模特（并行垫图）：**
+
+```
+[上传 10 张产品图] @ CobabaAi 生图
+帮我在每张产品图上都配一个美女模特，写实摄影，1280x1280
+```
+
+须一次 `cobabaai_draw` + `items`（每条独立 referenceImagePaths），禁止循环 10 次单张调用。
+
+**批量（2 张起，纯文生或共用垫图）：**
 
 ```
 用 nano-banana-2 并行生成 5 张不同风格的赛博朋克城市，1280x1280
 ```
 
-批量须调用 `generate_images_batch`，禁止循环 10 次 `generate_image`。
+批量须调用 `cobabaai_draw`（`prompts` 或 `items`），禁止循环多次单张调用。
 
 **无需单独配置 Skill**——插件自带 Skill；在 @ 插件 中启用 **CobabaAi 生图** 即可。
+
+## 生图时（给用户）
+
+- **正常**：一次 `cobabaai_draw`，零前置文字，不读 `.env`
+- **异常**：若 AI 读密钥、找入口、Reconnecting MCP、改用「通用生图」→ MCP 未连接，运行 doctor + 重装 + **新开对话**
 
 ## 故障
 

@@ -2,6 +2,8 @@
 
 在 [Codex](https://openai.com/codex/) 对话里直接用自然语言出图。安装本插件后，说「用 gpt-image-2 画一张…」或「并行生成 5 张不同风格的…」，Codex 会自动调用 CobabaAi 生图 API，并在聊天框里展示图片。
 
+**v0.3.3：** 单一 MCP 工具 `cobabaai_draw`，@ 插件后 **零废话直接出图**；支持垫图、继续编辑、批量并行（张数不限）。
+
 **仓库地址：** https://github.com/Colens/codex-image-plugin
 
 > **许可说明：** 本仓库为 **Public**，便于 Codex GitHub 插件市场安装，但采用 **专有许可**（见 [`LICENSE`](LICENSE)）——**禁止商用、禁止二次分发、禁止 Fork 后公开传播**。使用即表示同意协议条款。
@@ -13,30 +15,50 @@
 | 功能 | 说明 |
 |------|------|
 | **对话式出图** | 用中文或英文描述画面，Codex 自动选模型并生成 |
-| **批量并行** | 2～10 张不同描述 **一次并行** 提交，无需循环调用 |
+| **批量并行** | 2 张起、张数不限，不同描述 **一次并行** 提交，无需循环调用 |
 | **多模型支持** | `gpt-image-2`、`nano-banana`、`nano-banana-pro` 等 10 种模型 |
-| **图生图** | 传入参考图 URL，按参考风格生成新图 |
+| **图生图 / 垫图** | 上传参考图或传入本地 PNG 路径，按参考内容继续生成 |
+| **继续编辑** | 基于 `~/.codex/cobabaai-images/` 已生成图再改，无需重新上传 |
 | **自动轮询** | 异步任务自动等待完成，无需手动查进度 |
 | **聊天内展示** | 图片保存到本地，以 Markdown 形式显示在 Codex 对话中 |
 | **零 Node 配置** | 安装脚本自动下载便携 Node，无需单独安装 Node.js |
 
 ### 插件提供的 MCP 工具
 
+v0.3.3 起只暴露 **一个** 工具，避免 AI 找入口、读说明、空转：
+
 | 工具 | 用途 |
 |------|------|
-| `generate_image` | **单张**生图；同 prompt 要 2～4 个变体时传 `variants` |
-| `generate_images_batch` | **2～10 张并行**生图；传 `prompts` 数组，**一次调用**，禁止循环调 `generate_image` |
-| `list_image_models` | 列出所有可用模型 |
+| `cobabaai_draw` | **唯一入口**：单张 / 垫图 / 变体 / 批量（`items` / `prompts`） |
 
-#### 批量生图工具 `generate_images_batch`
-
-当你需要 **同时生成多张不同内容的图片**（例如 5 张不同家具的产品图、10 种 logo 方案）时，使用此工具：
+#### 单张 / 垫图 / 变体
 
 | 参数 | 说明 |
 |------|------|
-| `prompts` | 字符串数组，**2～10 条**，每条对应一张独立图片 |
-| `model` | 可选，如 `gpt-image-2`、`nano-banana-2` |
-| `resolution` | 可选，如 `1280x1280`、`16:9`、`4K` |
+| `prompt` | 画面描述（单张必填） |
+| `model` | 可选；**有参考图且未指定时默认 `nano-banana-2`** |
+| `resolution` / `aspectRatio` | 如 `1280x1280`、`16:9`、`4K` |
+| `variants` | 同 prompt 出 2～4 张变体 |
+| `referenceImagePaths` | 本地绝对路径数组（用户附件、`cobabaai-images/` 下 PNG） |
+| `referenceUrls` | 公网参考图 URL 数组 |
+
+工具返回 Markdown 图片行 + 隐藏注释 `<!-- cobabaai-ref: C:/... -->`，供下一轮继续编辑时传入 `referenceImagePaths`。
+
+#### 批量（`items` 或 `prompts`，2 条起）
+
+**模式 A — `items`（每张不同垫图，如 10 张产品各配模特）**
+
+| 参数 | 说明 |
+|------|------|
+| `items` | 数组，每项 `{ prompt, referenceImagePaths?, referenceUrls? }` |
+| `model` / `resolution` | 全局共用 |
+
+**模式 B — `prompts`（纯文生或共用一张垫图）**
+
+| 参数 | 说明 |
+|------|------|
+| `prompts` | 字符串数组 |
+| `referenceImagePaths` | 可选，**所有 prompt 共用** |
 
 **对话示例：**
 
@@ -52,11 +74,14 @@
 
 **对比：**
 
-| 场景 | 使用工具 |
-|------|----------|
-| 1 张图 | `generate_image` |
-| 同描述要 2～4 个变体 | `generate_image` + `variants: 2~4` |
-| 2～10 张 **不同描述** | **`generate_images_batch`**（一次调用） |
+| 场景 | `cobabaai_draw` 参数 |
+|------|----------------------|
+| 1 张纯文生图 | `prompt` |
+| 1 张垫图 / 继续编辑 | `prompt` + **`referenceImagePaths`** |
+| 同描述要 2～4 个变体 | `prompt` + `variants: 2~4` |
+| 2 张及以上 **不同描述**（纯文生） | **`prompts`** |
+| **多张各用不同垫图**（10 产品图各配模特） | **`items`** |
+| 批量 + **共用一张**垫图 | `prompts` + `referenceImagePaths` |
 
 ### 支持的模型
 
@@ -66,7 +91,7 @@
 | Nano Banana | `nano-banana` | 标准质量 |
 | Nano Banana Pro | `nano-banana-pro` / `nano-banana-pro-vip` | 高质量，支持 1K/2K/4K |
 | Nano Banana Pro | `nano-banana-pro-4k-vip` | 4K 高清 |
-| Nano Banana 2 | `nano-banana-2` / `nano-banana-2-cl` / `nano-banana-2-4k-cl` | 新一代模型 |
+| Nano Banana 2 | `nano-banana-2` / `nano-banana-2-cl` / `nano-banana-2-4k-cl` | **垫图 / 继续编辑默认** |
 
 完整列表见 [`cobabaai-image-plugin/server/model-config.js`](cobabaai-image-plugin/server/model-config.js)。
 
@@ -279,7 +304,17 @@ env_vars = ["COBABAAI_API_KEY", "COBABAAI_IMAGE_MODEL"]
 用 nano-banana 画一张赛博朋克风格的猫，16:9
 ```
 
-### 批量并行（2～10 张）
+### 十张产品图各配模特（并行垫图）
+
+上传 10 张产品图，@ CobabaAi 生图：
+
+```
+帮我在每张产品图上都配一个美女模特，自然展示产品，写实摄影，1280x1280
+```
+
+AI 应一次调用 `cobabaai_draw`，`items` 里 10 条，每条 `referenceImagePaths` 对应一张上传图。
+
+### 批量并行（2 张起，纯文生）
 
 ```
 用 nano-banana-2 并行生成 5 张不同家具的白底产品图，1280x1280
@@ -289,11 +324,31 @@ env_vars = ["COBABAAI_API_KEY", "COBABAAI_IMAGE_MODEL"]
 用 gpt-image-2 同时生成 3 种不同风格的 app 图标，1024x1024
 ```
 
-### 图生图
+### 垫图 / 图生图（上传参考图）
+
+在对话里 **@ CobabaAi 生图**，**上传一张图片** 并描述要生成的内容：
+
+```
+用 nano-banana-2 生成一位美女坐在同款白色豆袋沙发上，写实摄影，1280x1280
+```
+
+插件会把用户附件的本地路径作为 `referenceImagePaths` 传给 API。
+
+### 继续编辑（基于已生成的图）
+
+```
+把背景改成夜景，人物和沙发不变
+```
+
+AI 会使用上一轮返回的 `<!-- cobabaai-ref: C:/Users/.../cobabaai-images/task_xxx.png -->` 路径作为垫图。
+
+也可用公网 URL：
 
 ```
 用 nano-banana-pro 根据这张参考图生成类似风格：https://example.com/ref.jpg
 ```
+
+> **说明：** 有参考图时，若你指定 `gpt-image-2`，插件会自动改用 `nano-banana-2` 做垫图（效果更好）。纯文生图仍可用 `gpt-image-2`。
 
 > **注意：** 若 AI 说「工具未连接」或反复排查却不生图，**不要**让它读 `cobabaai-image.env`。请运行 **`自检.bat`** / **`doctor.ps1`**，然后**完全重启 Codex**，新对话并在 **@ 插件** 中启用 **CobabaAi 生图**。
 
@@ -321,7 +376,8 @@ Codex 会读取 [`AGENTS.md`](AGENTS.md) 并自动执行安装。
 | **npm / Node 下载失败** | 检查 nodejs.org、registry.npmjs.org 网络；重跑安装脚本 |
 | **@ 插件里看不到 CobabaAi 生图** | 重跑 install 脚本，完全重启 Codex |
 | **工具未暴露 / 无法生图** | 运行 `doctor.ps1` / `doctor.sh`，重跑 install，完全重启 Codex |
-| **AI 弹权限读 .env** | 拒绝；重启 → 新对话 → @ CobabaAi 生图 → 直接说「画…」 |
+| **AI 废话多、先读说明再找入口** | 更新到 v0.3.3+，**新开对话** @ CobabaAi 生图；同垫图要 2 张用 `variants:2` 勿 batch |
+| **AI 反复排查、弹权限读 .env** | 不要批准；重启 Codex → 新对话 @ CobabaAi 生图 |
 | **插件列表为空** | `codex plugin marketplace add Colens/codex-image-plugin --enable plugins`，再 `codex plugin add cobabaai-image@cobabaai --enable plugins`，然后重跑 install |
 | **macOS 找不到 codex** | `export CODEX_BIN="/Applications/Codex.app/Contents/Resources/codex"` |
 | **生成超时** | 批量或 pro 系列较慢，超时已设 600 秒；可换 `nano-banana` |

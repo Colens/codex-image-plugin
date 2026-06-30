@@ -2,20 +2,10 @@ import {
   fetchImageContent,
   generateImagesBatch,
 } from "./cobabaai-client.js";
-import { buildLocalImageMarkdown, saveOriginalPng } from "./save-image.js";
+import { buildLocalImageMarkdown, buildRefHint, saveOriginalPng } from "./save-image.js";
 
-export async function runBatchAndBuildMarkdown({
-  prompts,
-  model,
-  resolution,
-  aspectRatio,
-}) {
-  const results = await generateImagesBatch({
-    prompts,
-    model,
-    resolution,
-    aspectRatio,
-  });
+export async function runBatchAndBuildMarkdown(args) {
+  const results = await generateImagesBatch(args);
 
   const lines = [];
   for (const item of results) {
@@ -29,6 +19,7 @@ export async function runBatchAndBuildMarkdown({
       `${item.taskId}_${item.index + 1}`,
     );
     lines.push(buildLocalImageMarkdown(savedPath, item.prompt));
+    lines.push(buildRefHint(savedPath));
   }
 
   const okCount = results.filter((r) => r.ok).length;

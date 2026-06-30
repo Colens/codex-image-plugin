@@ -31,6 +31,18 @@ export function normalizeModel(model) {
   return MODEL_OPTIONS.includes(value) ? value : "gpt-image-2";
 }
 
+/** 有参考图时优先 nano-banana 系（gpt-image-2 垫图能力弱） */
+export function pickModelWithReferences(model, hasReferences) {
+  const normalized = normalizeModel(model || process.env.COBABAAI_IMAGE_MODEL);
+  if (!hasReferences) {
+    return normalized;
+  }
+  if (normalized === "gpt-image-2") {
+    return "nano-banana-2";
+  }
+  return normalized;
+}
+
 export function getEndpoint(baseUrl, model) {
   const normalized = normalizeModel(model);
   if (NANO_BANANA_MODELS.has(normalized)) {
@@ -59,10 +71,12 @@ export function buildRequestBody({
   resolution,
   variants = 1,
   referenceUrls = [],
+  referenceImages = [],
   imageSize,
   webHook = "-1",
 }) {
   const normalizedModel = normalizeModel(model);
+  const refs = referenceImages.length > 0 ? referenceImages : referenceUrls;
   const size = resolveSize({
     resolution,
     aspectRatio,
@@ -72,7 +86,7 @@ export function buildRequestBody({
     prompt,
     variants,
     model: normalizedModel,
-    urls: referenceUrls,
+    images: refs,
     webHook,
     aspectRatio: size.aspectRatio,
   };
